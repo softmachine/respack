@@ -2,6 +2,7 @@ package at.softmachine.grails.plugins
 
 class ResourceTagLib {
   def groovyPagesTemplateEngine
+  def pluginManager
   static namespace = "respack"
 
   /**
@@ -170,10 +171,17 @@ class ResourceTagLib {
   def include = {attrs, body ->
     def path = attrs.remove ('path')?.toString()
     def parse = new Boolean(attrs.remove('parse') ?: "false")
+    def pluginName = attrs.remove ('plugin')
 
+    def plugin = pluginName ? pluginManager.getGrailsPlugin('jquery-ui') : null
+
+    if (plugin) {
+      def pluginPath = pluginManager.getPluginPath(pluginName)
+      path = pluginPath + (path.startsWith('/') ? '' : '/') + path
+    }
     log.debug ("processing resource with path: $path (parse=$parse)")
 //    out << "<!-- resource: $path (parse=$parse) -->\n"
-
+                         
     def fullPath = request?.session?.servletContext?.getRealPath(path)
     File resFile = new File(fullPath) ;
 
