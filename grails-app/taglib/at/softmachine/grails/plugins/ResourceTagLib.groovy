@@ -1,5 +1,7 @@
 package at.softmachine.grails.plugins
 
+import org.codehaus.groovy.grails.web.pages.GroovyPageTemplate
+
 class ResourceTagLib {
   def groovyPagesTemplateEngine
   def pluginManager
@@ -181,7 +183,8 @@ class ResourceTagLib {
     }
     log.debug ("processing resource with path: $path (parse=$parse)")
 //    out << "<!-- resource: $path (parse=$parse) -->\n"
-                         
+
+    def relPath = grailsAttributes.getApplicationContext().getResource(path).getFile()
     def fullPath = request?.session?.servletContext?.getRealPath(path)
     File resFile = new File(fullPath) ;
 
@@ -191,8 +194,12 @@ class ResourceTagLib {
     }
 
     if (parse) {
-      def template = groovyPagesTemplateEngine.createTemplate(resFile)
-      Writable result = template.make([params:params, config:grailsApplication.config])
+      String baseUri = path
+      def idx = baseUri.findLastIndexOf{it == '/'}
+      if (idx != -1)
+        baseUri = baseUri[0..idx-1]
+      GroovyPageTemplate template = groovyPagesTemplateEngine.createTemplate(resFile)
+      Writable result = template.make([params:params, config:grailsApplication.config, current:baseUri, base:g.resource(dir:'')])
       result.writeTo(out)
     }
     else {
