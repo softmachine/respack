@@ -11,13 +11,14 @@ class ResourceTagLib {
    * adds a resource of some type to a packlist to be rendered later
    */
   def addresource = {attrs, body ->
-    def file = attrs.file
-    def type  = attrs.type ?:  "css"
-    def packid   = attrs.packid ?: "${type}-id"
+    def file    = attrs.file
+    def type    = attrs.type ?:  "css"
+    def packid  = attrs.packid ?: "${type}-id"
+	def plugin  = attrs.plugin
     def parse = attrs.boolean ("parse")
 
     def idlist = openPack(session, packid)
-    idlist << [type:type, file:file, parse:parse]
+    idlist << [type:type, file:file, plugin:plugin, parse:parse]
   }
 
   /**
@@ -73,7 +74,8 @@ class ResourceTagLib {
     switch (mode) {
       case 'links':
         idlist.each {
-          sb << '<!-- render: --><link rel=\"stylesheet" ' << 'href="'<< g.resource(dir:baseDir, file:it.file) <<'">\n'
+		  def respath = g.resource (dir:baseDir, file:it.file, plugin:it.plugin)
+		  sb << respack.tag (name:'link', rel:'stylesheet', href:respath)
         }
         break ;
 
@@ -109,7 +111,8 @@ class ResourceTagLib {
     switch (mode) {
       case 'links':
         idlist.each {
-          sb << "<!-- render: -->" << respack.tag (name:'script', type:'text/javascript', src:g.resource(dir:baseDir, file:it.file)) << "\n"
+		  def respath = g.resource(dir:baseDir, file:it.file, plugin:it.plugin)
+          sb << respack.tag (name:'script', type:'text/javascript', src:respath)
         }
         break ;
 
